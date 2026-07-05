@@ -15,7 +15,7 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    public static final String JWT_CLAIM_LOGIN = "login";
+    static final String JWT_CLAIM_LOGIN = "login";
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
 

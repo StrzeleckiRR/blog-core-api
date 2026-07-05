@@ -15,10 +15,17 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import pl.mojastrona.authentication.JwtTokenToUsernameTokenConverter;
 import pl.mojastrona.user.UserRole;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +36,7 @@ public class SecurityConfig {
     private String secret;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenToUsernameTokenConverter converter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -46,7 +53,8 @@ public class SecurityConfig {
                         .hasAuthority(UserRole.ADMIN.name())
 
                         .anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults());
+                //.httpBasic(Customizer.withDefaults());
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)));
 
         return http.build();
     }
@@ -80,5 +88,13 @@ public class SecurityConfig {
     @Bean
     public JwtEncoder jwtEncoder(){
        return new NimbusJwtEncoder(new ImmutableSecret<>(secret.getBytes()));
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(){
+        SecretKey secretKey = new SecretKeySpec(
+               secret.getBytes(), "AES"
+        );
+        return NimbusJwtDecoder.withSecretKey(secretKey).build();
     }
 }
