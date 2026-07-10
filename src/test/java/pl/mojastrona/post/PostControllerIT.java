@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -32,6 +33,9 @@ class PostControllerIT extends BaseIT {
     @Autowired
     private CommentCreator commentCreator;
 
+    @Autowired
+    private PostRepository postRepository;
+
     @Test
     void givenNotAuthenticated_whenCreate_then401() throws Exception {
         //given
@@ -44,6 +48,48 @@ class PostControllerIT extends BaseIT {
 
         //then
         resultActions.andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    void givenAuthenticatedUserNotAuthor_whenUpdate_then403() throws Exception {
+        //given
+        createUserAndAuthenticate();
+        User author = userCreator.createUser("JosephEgypt", UserRole.USER);
+
+        Post post = postCreator.createPostWithComment(author);
+
+
+        String expectedNewText = "New text";
+        PostScope expectedUpdatedScope = PostScope.PRIVATE;
+        UpdatePostRequest request = new UpdatePostRequest(expectedNewText, expectedUpdatedScope, post.getVersion());
+
+        Long id = post.getId();
+
+
+        ResultActions resultActions = performPut(PATH_POST_URL + "/{id}", id, request);
+
+        //then
+        resultActions.andExpect(status().isForbidden());
+
+        Post shouldntBeUpdatedPost = entityManager.find(Post.class, id);
+
+        assertThat(shouldntBeUpdatedPost.getLastModifiedDateTime()).isEqualToIgnoringNanos(post.getCreatedDateTime());
+        assertThat(shouldntBeUpdatedPost.getCreatedDateTime()).isEqualToIgnoringNanos(post.getCreatedDateTime());
+
+        assertThat(shouldntBeUpdatedPost).extracting(
+                Post::getVersion,
+                Post::getText,
+                Post::getPublicationDate,
+                Post::getScope,
+                Post::getStatus
+        ).containsExactly(
+                post.getVersion(),
+                post.getText(),
+                post.getPublicationDate(),
+                post.getScope(),
+                post.getStatus()
+        );
 
     }
 
@@ -170,47 +216,7 @@ class PostControllerIT extends BaseIT {
 
     }
 
-    @Test
-    void givenAuthenticatedUserNotAuthor_whenUpdate_then403() throws Exception {
-        //given
-        createUserAndAuthenticate();
-        User author = userCreator.createUser("JosephEgypt", UserRole.USER);
 
-        Post post = postCreator.createPostWithComment(author);
-
-
-        String expectedNewText = "New text";
-        PostScope expectedUpdatedScope = PostScope.PRIVATE;
-        UpdatePostRequest request = new UpdatePostRequest(expectedNewText, expectedUpdatedScope, post.getVersion());
-
-        Long id = post.getId();
-
-
-        ResultActions resultActions = performPut(PATH_POST_URL + "/{id}", id, request);
-
-        //then
-        resultActions.andExpect(status().isForbidden());
-
-        Post shouldntBeUpdatedPost = entityManager.find(Post.class, id);
-
-        assertThat(shouldntBeUpdatedPost.getLastModifiedDateTime()).isEqualToIgnoringNanos(post.getCreatedDateTime());
-        assertThat(shouldntBeUpdatedPost.getCreatedDateTime()).isEqualToIgnoringNanos(post.getCreatedDateTime());
-
-        assertThat(shouldntBeUpdatedPost).extracting(
-                Post::getVersion,
-                Post::getText,
-                Post::getPublicationDate,
-                Post::getScope,
-                Post::getStatus
-        ).containsExactly(
-                post.getVersion(),
-                post.getText(),
-                post.getPublicationDate(),
-                post.getScope(),
-                post.getStatus()
-        );
-
-    }
 
     @Test
     void givenCorrectRequest_whenUpdate_thenUpdatePost() throws Exception {
@@ -432,9 +438,74 @@ class PostControllerIT extends BaseIT {
                         );
 
     }
+    //------findForLoggedUser
+
+    @Test
+    void givenNotAuthenticated_whenFindForLoggedUser_then401() throws Exception {
+        //given
 
 
+        FindPostRequest request = new FindPostRequest(null,null,null,null,null);
 
 
+        ResultActions resultActions = performPost(PATH_POST_URL, request);
+
+        //then
+        resultActions.andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    void givenNoPostInDb_whenFindForLoggedUser_thenEmptyList() throws Exception {
+
+        //given
+        createUserAndAuthenticate();
+
+        String text = "Example Text";
+        Set<PostStatus> status = Set.of(PostStatus.ACTIVE);
+        FindPostRequest request = new FindPostRequest(status, text,null,null,null);
+
+        String urlWithParams = PATH_POST_URL + "/findForLogged" + "?page=0&size=3";
+        ResultActions resultActions = performPost(urlWithParams, request);
+
+        //then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+    }
+
+    @Test
+    void givenPostsForUserLogged_whenFindForLoggedUser_thenCorrectRequest() throws Exception {
+
+        //given
+        User user = createUserAndAuthenticate();
+
+        String postText = "Example Text";
+
+
+        Post post = new Post();
+        post.setVersion(0);
+        post.setCreatedDateTime(LocalDateTime.now().minusDays(1));
+        post.setLastModifiedDateTime(LocalDateTime.now().minusDays(1));
+        post.setText(postText);
+        post.setAuthor(user.getLogin());
+        post.setScope(PostScope.PUBLIC);
+        post.setStatus(PostStatus.ACTIVE);
+        post.setUser(user);
+        postRepository.save(post);
+
+        FindPostRequest request = new FindPostRequest(Set.of(PostStatus.ACTIVE),postText, null,null,null );
+
+
+        String urlWithParams = PATH_POST_URL + "/findForLogged" + "?page=0&size=3";
+        ResultActions resultActions = performPost(urlWithParams,request);
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].text").value("Example Text"));
+
+    }
 
 }

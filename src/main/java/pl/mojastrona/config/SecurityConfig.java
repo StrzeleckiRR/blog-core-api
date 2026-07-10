@@ -6,9 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,7 +23,6 @@ import pl.mojastrona.user.UserRole;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
 
 @Configuration
 @EnableWebSecurity
@@ -45,7 +42,7 @@ public class SecurityConfig {
 
                         //**Dla USER I ADMIN
                         .requestMatchers(HttpMethod.GET,"api/posts/*", "api/posts",
-                                "api/comments", "/api/comments/*")
+                                "api/comments", "/api/comments/*" , "api/posts/findForLogged")
                                 .permitAll()
 
                         //**Tylko dla ADMIN

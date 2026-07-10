@@ -61,5 +61,12 @@ public class PostController {
 
         return ResponseEntity.ok(body);
     }
+
+    @PostMapping("/findForLogged")
+    public ResponseEntity<Page<FindPostResponse>> findForLoggedUser(@RequestBody FindPostRequest findPostRequest, Pageable pageable){
+        Page<FindPostResponse> body = postService.findForLogged(findPostRequest, pageable);
+        return ResponseEntity.ok(body);
+    }
+
 }
 
