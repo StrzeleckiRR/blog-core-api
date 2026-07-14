@@ -2,6 +2,7 @@ package pl.mojastrona.user;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,6 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pl.mojastrona.address.Address;
 import pl.mojastrona.groupinfo.GroupInfo;
+import pl.mojastrona.userProfile.UserProfile;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -65,6 +67,9 @@ public class User implements UserDetails {
     @NotNull
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserProfile userProfile;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Address address;

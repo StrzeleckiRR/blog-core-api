@@ -641,7 +641,7 @@
         <addNotNullConstraint tableName="comment" columnName="user_id" columnDataType="BIGINT"/>
     </changeSet>
 
-    <changeSet author="Marcin (generated)" id="BS-12466-4">
+    <changeSet author="Marcin" id="BS-12466-4">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="comment_aud" columnName="user_id"/>
@@ -652,7 +652,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet author="Marcin (generated)" id="BS-12466-5">
+    <changeSet author="Marcin" id="BS-12466-5">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists indexName="FKcs3mffo2nicys344xkiymy9u1" tableName="comment"/>
@@ -662,5 +662,125 @@
             <column name="user_id"/>
         </createIndex>
     </changeSet>
+
+    <changeSet author="Marcin" id="BS-12477-1">
+        <addColumn tableName="address">
+            <column name="zip_code" type="VARCHAR(50)">
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-2">
+        <update tableName="address">
+            <column name="zip_code" value="00-000"/>
+        </update>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-3">
+        <addColumn tableName="user_info">
+            <column name="name" type="VARCHAR(100)">
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-4">
+        <update tableName="user_info">
+            <column name="name" value="Jan"/>
+        </update>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-5">
+        <addColumn tableName="address_aud">
+            <column name="zip_code" type="VARCHAR(50)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-6">
+        <addColumn tableName="user_info_aud">
+            <column name="name" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-7">
+        <addColumn tableName="user_info">
+            <column name="surname" type="VARCHAR(100)">
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-8">
+        <update tableName="user_info">
+            <column name="surname" value="Kowalski"/>
+        </update>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-9">
+        <addColumn tableName="user_info_aud">
+            <column name="surname" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12477-10">
+        <addNotNullConstraint tableName="address"
+                              columnName="zip_code"
+                              columnDataType="VARCHAR(50)"/>
+
+        <addNotNullConstraint tableName="user_info"
+                              columnName="name"
+                              columnDataType="VARCHAR(100)"/>
+
+        <addNotNullConstraint tableName="user_info"
+                              columnName="surname"
+                              columnDataType="VARCHAR(100)"/>
+    </changeSet>
+    
+    <changeSet author="Marcin" id="BS-12488-1" >
+
+        <dropNotNullConstraint tableName="user_info"
+                               columnName="name"
+                               columnDataType="VARCHAR(100)"/>
+        <dropNotNullConstraint tableName="user_info"
+                               columnName="surname"
+                               columnDataType="VARCHAR(100)"/>
+        <dropColumn tableName="user_info" columnName="name"/>
+        <dropColumn tableName="user_info" columnName="surname"/>
+
+        <dropColumn tableName="user_info_aud" columnName="name"/>
+        <dropColumn tableName="user_info_aud" columnName="surname"/>
+    </changeSet>
+
+    <changeSet author="Marcin" id="BS-12499-1">
+        <createTable tableName="user_profile">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="email" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="surname" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12499-2">
+        <createTable tableName="user_profile_aud">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rev" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueComputed="NULL" name="revtype" type="TINYINT"/>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="name" type="VARCHAR(100)"/>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="surname" type="VARCHAR(100)"/>
+        </createTable>
+        <addPrimaryKey tableName="user_profile_aud"
+                       columnNames="id, rev"
+                       constraintName="PK_USER_PROFILE_AUD"/>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12499-3">
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="user_profile_aud" constraintName="FK_USER_PROFILE_AUD" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="rev" referencedTableName="revinfo" validate="true"/>
+    </changeSet>
+    <changeSet author="Marcin" id="BS-12499-4">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="user_profile" constraintName="FK_USER_PROFILE" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="user_info" validate="true"/>
+    </changeSet>
+
 </databaseChangeLog>
 

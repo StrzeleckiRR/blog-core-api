@@ -49,6 +49,12 @@ public class Address {
 
     @NotBlank
     @NotNull
+    @Size(max = 50)
+    @Column(length = 50)
+    private String zipCode;
+
+    @NotBlank
+    @NotNull
     @Size(max = 100)
     @Column(length = 100)
     private String city;

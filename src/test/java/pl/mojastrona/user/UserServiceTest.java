@@ -39,7 +39,7 @@ class UserServiceTest extends BaseUnitTest {
 
         String encodedPass = "encodedPass";
 
-        CreateUserRequest createUserRequest = new CreateUserRequest("Strzelecki", "marcin123");
+        CreateUserRequest createUserRequest = new CreateUserRequest("StrzeleckiRR", "marcin123");
         Mockito.when(passwordEncoder.encode(createUserRequest.getPassword())).thenReturn(encodedPass);
 
         underTest.create(createUserRequest);
@@ -58,7 +58,7 @@ class UserServiceTest extends BaseUnitTest {
     }
 
     @Test
-    void givenUserIdNotExsist_whenJoinToGroup_ThenEntityNotFoundException() {
+    void givenUserIdNotExist_whenJoinToGroup_ThenEntityNotFoundException() {
 
 
         JoinToGroupRequest request = new JoinToGroupRequest(62L, 23L);
